@@ -1,0 +1,5 @@
+build
+vendor
+
+# Ensure we always keep .gitkeep
+!**/.gitkeep
