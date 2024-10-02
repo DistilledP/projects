@@ -64,6 +64,8 @@ func dispatchCommand(conn net.Conn, cmd types.Command) {
 		cmdSet(conn, cmd.Args)
 	case cmd.Name == "get":
 		cmdGet(conn, cmd.Args)
+	case cmd.Name == "del":
+		cmdDel(conn, cmd.Args)
 	case cmd.Name == "keys":
 		cmdKeys(conn, cmd.Args)
 	case cmd.Name == "ping":
@@ -105,6 +107,18 @@ func cmdGet(conn net.Conn, args []string) {
 	}
 
 	conn.Write([]byte("$-1\r\n"))
+}
+
+func cmdDel(conn net.Conn, args []string) {
+	deletedCount := 0
+	for _, k := range args {
+		if _, found := kvStore[k]; found {
+			delete(kvStore, k)
+			deletedCount++
+		}
+	}
+
+	conn.Write([]byte(fmt.Sprintf(":%d\r\n", deletedCount)))
 }
 
 func cmdKeys(conn net.Conn, _ []string) {
