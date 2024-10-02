@@ -2,17 +2,15 @@ package main
 
 import (
 	"bufio"
-	"bytes"
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"maps"
 	"net"
-	"slices"
 	"strings"
 
 	"github.com/DistilledP/lungfish/internal/libs"
+	"github.com/DistilledP/lungfish/internal/parser"
+	"github.com/DistilledP/lungfish/internal/types"
 )
 
 var kvStore map[string][]byte = make(map[string][]byte)
@@ -40,108 +38,82 @@ func main() {
 }
 
 func handleConn(conn net.Conn) {
+	// connection is opened for every command, need to catch the disconnect and handle appropriately.
 	defer conn.Close()
 	fmt.Println("New connection from", conn.RemoteAddr())
 
 	bufferedConn := bufio.NewReader(conn)
 
-	buff := []byte{}
-	for {
-		v, err := bufferedConn.ReadByte()
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-			fmt.Println("read err:", err)
-			continue
-		}
+	cmd := parser.ParseRedisURP(bufferedConn)
 
-		fmt.Print(string(v))
-
-		buff = append(buff, v)
-
-		if buff[len(buff)-1] == 10 {
-			dispatchCommand(conn, buff)
-			buff = []byte{}
-		}
-	}
+	dispatchCommand(conn, cmd)
 }
 
 var CRLF = []byte{13, 10}
-var PINGCMD = []byte{80, 73, 78, 71}
-var SET = []byte{83, 69, 84}
-var GET = []byte{71, 69, 84}
-var KEYS = []byte{75, 69, 89, 83}
 
-func dispatchCommand(conn net.Conn, buff []byte) {
-	cmd, args := cmdAndArgs(buff)
-
+func dispatchCommand(conn net.Conn, cmd types.Command) {
 	switch true {
-	case slices.Equal(cmd, PINGCMD):
-		cmdPong(conn, args)
-	case slices.Equal(cmd, SET):
-		cmdSet(conn, args)
-	case slices.Equal(cmd, GET):
-		cmdGet(conn, args)
-	case slices.Equal(cmd, KEYS):
-		cmdKeys(conn)
+	case cmd.Name == "set":
+		cmdSet(conn, cmd.Args)
+	case cmd.Name == "get":
+		cmdGet(conn, cmd.Args)
+	case cmd.Name == "keys":
+		cmdKeys(conn, cmd.Args)
+	case cmd.Name == "ping":
+		cmdPong(conn, cmd.Args)
 	default:
-		cmdError(conn, fmt.Sprintf("unknown command: %s", string(cmd)))
-		fmt.Println(buff)
+		cmdError(conn, fmt.Sprintf("unknown command: %s", strings.ToUpper(cmd.Name)))
 	}
 }
 
-func cmdAndArgs(raw []byte) ([]byte, [][]byte) {
-	raw = bytes.TrimSpace(raw)
-	buffBits := bytes.Split(raw, []byte{32})
-	cmd := buffBits[0]
-	args := buffBits[1:]
-
-	return cmd, args
+func cmdPong(conn net.Conn, args []string) {
+	if len(args) > 0 {
+		conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(args[0]), args[0])))
+	} else {
+		conn.Write([]byte("+PONG\r\n"))
+	}
 }
 
-func cmdPong(conn net.Conn, args [][]byte) {
-	fmt.Println(args)
-	conn.Write([]byte("+PONG\r\n"))
-}
-
-func cmdSet(conn net.Conn, args [][]byte) {
+func cmdSet(conn net.Conn, args []string) {
 	if len(args) != 2 {
 		cmdError(conn, fmt.Sprintf("SET: expected 2 args, got %d", len(args)))
 		return
 	}
 
-	kvStore[string(args[0])] = args[1]
+	kvStore[string(args[0])] = []byte(args[1])
 
 	conn.Write([]byte("+OK\r\n"))
 }
 
-func cmdGet(conn net.Conn, args [][]byte) {
+func cmdGet(conn net.Conn, args []string) {
 	if len(args) != 1 {
 		cmdError(conn, fmt.Sprintf("GET: expected 1 args, got %d", len(args)))
 		return
 	}
 
 	if v, found := kvStore[string(args[0])]; found {
-		// this is the wrong format for Redis, colon should be CRLF - need to update client
-		resp := fmt.Sprintf("$%d:%s%s", len(v), v, CRLF)
+		resp := fmt.Sprintf("$%d\r\n%s%s", len(v), v, CRLF)
 		conn.Write([]byte(resp))
 		return
 	}
 
-	conn.Write([]byte("$\r\n"))
+	conn.Write([]byte("$-1\r\n"))
 }
 
-func cmdKeys(conn net.Conn) {
+func cmdKeys(conn net.Conn, _ []string) {
+	// This can probably be optimised.
 	keysStrings := []string{}
 	keys := maps.Keys(kvStore)
 	for k := range keys {
 		keysStrings = append(keysStrings, k)
 	}
 
-	// this is the wrong format for Redis, colon should be CRLF - need to update client
 	if len(keysStrings) > 0 {
-		conn.Write([]byte(fmt.Sprintf("*%d:%s\r\n", len(keysStrings), strings.Join(keysStrings, ":"))))
+		out := fmt.Sprintf("*%d\r\n", len(keysStrings))
+		for _, k := range keysStrings {
+			out = fmt.Sprintf("%s$%d\r\n%s\r\n", out, len(k), k)
+		}
+		conn.Write([]byte(out))
 	} else {
 		conn.Write([]byte(fmt.Sprintf("*%d\r\n", len(keysStrings))))
 	}

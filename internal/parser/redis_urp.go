@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/DistilledP/lungfish/internal/libs"
+	"github.com/DistilledP/lungfish/internal/types"
 )
 
 const (
@@ -12,10 +13,10 @@ const (
 	urpFieldLenASCII = 36
 )
 
-func ParseRedisURP(reader *bufio.Reader) string {
+func ParseRedisURP(reader *bufio.Reader) types.Command {
 	header, _ := reader.ReadBytes(byte(10))
 	if header[0] != urpStartASCII {
-		return ""
+		return types.Command{}
 	}
 
 	command := []string{}
@@ -31,5 +32,8 @@ func ParseRedisURP(reader *bufio.Reader) string {
 		}
 	}
 
-	return strings.Join(command, " ")
+	return types.Command{
+		Name: strings.ToLower(command[0]),
+		Args: command[1:],
+	}
 }
