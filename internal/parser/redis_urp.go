@@ -9,13 +9,13 @@ import (
 )
 
 const (
-	urpStartASCII    = 42
+	UrpStartASCII    = 42
 	urpFieldLenASCII = 36
 )
 
 func ParseRedisURP(reader *bufio.Reader) types.Command {
 	header, _ := reader.ReadBytes(byte(10))
-	if header[0] != urpStartASCII {
+	if header[0] != UrpStartASCII {
 		return types.Command{}
 	}
 

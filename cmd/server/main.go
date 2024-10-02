@@ -44,7 +44,14 @@ func handleConn(conn net.Conn) {
 
 	bufferedConn := bufio.NewReader(conn)
 
-	cmd := parser.ParseRedisURP(bufferedConn)
+	firstByte, _ := bufferedConn.Peek(1)
+
+	var cmd types.Command
+	if firstByte[0] == parser.UrpStartASCII {
+		cmd = parser.ParseRedisURP(bufferedConn)
+	} else {
+		cmd = parser.ParseRaw(bufferedConn)
+	}
 
 	dispatchCommand(conn, cmd)
 }
