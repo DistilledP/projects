@@ -7,13 +7,14 @@ import (
 	"maps"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/DistilledP/lungfish/internal/libs"
 	"github.com/DistilledP/lungfish/internal/parser"
 	"github.com/DistilledP/lungfish/internal/types"
 )
 
-var kvStore map[string][]byte = make(map[string][]byte)
+var kvStore map[string]types.Value = make(map[string]types.Value)
 
 func main() {
 	config := libs.GetServices().GetConfig()
@@ -89,7 +90,13 @@ func cmdSet(conn net.Conn, args []string) {
 		return
 	}
 
-	kvStore[string(args[0])] = []byte(args[1])
+	if v, found := kvStore[string(args[0])]; found {
+		v.Val = []byte(args[1])
+		v.DateModified = time.Now()
+		kvStore[string(args[0])] = v
+	} else {
+		kvStore[string(args[0])] = types.Value{Val: []byte(args[1]), DateCreated: time.Now(), DateModified: time.Now()}
+	}
 
 	conn.Write([]byte("+OK\r\n"))
 }
@@ -101,7 +108,7 @@ func cmdGet(conn net.Conn, args []string) {
 	}
 
 	if v, found := kvStore[string(args[0])]; found {
-		resp := fmt.Sprintf("$%d\r\n%s%s", len(v), v, CRLF)
+		resp := fmt.Sprintf("$%d\r\n%s%s", len(v.Val), v.Val, CRLF)
 		conn.Write([]byte(resp))
 		return
 	}
