@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/DistilledP/lungfish/internal/response"
 	"github.com/DistilledP/lungfish/internal/types"
 )
 
@@ -17,13 +18,11 @@ func Get(store types.StorageBucket) types.CommandHandler {
 		key := string(args[0])
 		matches := store.Find(key)
 		if len(matches) > 0 {
-			match := matches[key]
-			resp := fmt.Sprintf("$%d\r\n%s%s", len(match.Val), match.Val, CRLF)
-			conn.Write([]byte(resp))
+			conn.Write(response.BulkString(string(matches[key].Val), false))
 			return
 		}
 
-		conn.Write([]byte("$-1\r\n"))
+		conn.Write(response.BulkString("", true))
 	}
 }
 
@@ -39,6 +38,6 @@ func Set(store types.StorageBucket) types.CommandHandler {
 
 		store.Add(key, value)
 
-		conn.Write([]byte("+OK\r\n"))
+		conn.Write(response.SimpleString("OK"))
 	}
 }
