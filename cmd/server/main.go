@@ -9,6 +9,7 @@ import (
 	"github.com/DistilledP/lungfish/internal"
 	"github.com/DistilledP/lungfish/internal/libs"
 	"github.com/DistilledP/lungfish/internal/parser"
+	"github.com/DistilledP/lungfish/internal/storage"
 	"github.com/DistilledP/lungfish/internal/types"
 )
 
@@ -21,6 +22,8 @@ func main() {
 	}
 
 	defer ln.Close()
+
+	internal.Setup(storage.NewInMemory())
 
 	fmt.Printf("Server started on port %d\n", config.PublicPort)
 

@@ -9,12 +9,16 @@ import (
 	"github.com/DistilledP/lungfish/internal/types"
 )
 
-var commandMap map[string]types.CommandHandler = map[string]func(net.Conn, []string){
-	hdlr.CmdDel:  hdlr.Del,
-	hdlr.CmdGet:  hdlr.Get,
-	hdlr.CmdKeys: hdlr.Keys,
-	hdlr.CmdPing: hdlr.Ping,
-	hdlr.CmdSet:  hdlr.Set,
+var commandMap map[string]types.CommandHandler
+
+func Setup(store types.StorageBucket) {
+	commandMap = map[string]types.CommandHandler{
+		hdlr.CmdDel:  hdlr.Del(store),
+		hdlr.CmdGet:  hdlr.Get(store),
+		hdlr.CmdKeys: hdlr.Keys(store),
+		hdlr.CmdPing: hdlr.Ping,
+		hdlr.CmdSet:  hdlr.Set(store),
+	}
 }
 
 func DispatchCommand(conn net.Conn, cmd types.Command) {

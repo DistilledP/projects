@@ -1,9 +1,5 @@
 package command
 
-import (
-	"github.com/DistilledP/lungfish/internal/types"
-)
-
 const (
 	CmdDel  = "del"
 	CmdGet  = "get"
@@ -12,5 +8,4 @@ const (
 	CmdSet  = "set"
 )
 
-var kvStore map[string]types.Value = make(map[string]types.Value)
 var CRLF = []byte{13, 10}

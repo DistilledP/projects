@@ -2,42 +2,36 @@ package command
 
 import (
 	"fmt"
-	"maps"
 	"net"
+
+	"github.com/DistilledP/lungfish/internal/types"
 )
 
-func Del(conn net.Conn, args []string) {
-	deletedCount := 0
-	for _, k := range args {
-		if _, found := kvStore[k]; found {
-			delete(kvStore, k)
-			deletedCount++
-		}
+func Del(store types.StorageBucket) types.CommandHandler {
+	return func(conn net.Conn, args []string) {
+		deleted := store.Del(args...)
+		conn.Write([]byte(fmt.Sprintf(":%d\r\n", deleted)))
 	}
-
-	conn.Write([]byte(fmt.Sprintf(":%d\r\n", deletedCount)))
 }
 
 func Error(conn net.Conn, errorTxt string) {
 	conn.Write([]byte(fmt.Sprintf("-Error %s\r\n", errorTxt)))
 }
 
-func Keys(conn net.Conn, _ []string) {
-	// This can probably be optimised.
-	keysStrings := []string{}
-	keys := maps.Keys(kvStore)
-	for k := range keys {
-		keysStrings = append(keysStrings, k)
-	}
+func Keys(store types.StorageBucket) types.CommandHandler {
+	return func(conn net.Conn, filters []string) {
+		// need to handle filters, including empty
+		indexes := store.Indexes("")
 
-	if len(keysStrings) > 0 {
-		out := fmt.Sprintf("*%d\r\n", len(keysStrings))
-		for _, k := range keysStrings {
-			out = fmt.Sprintf("%s$%d\r\n%s\r\n", out, len(k), k)
+		if len(indexes) > 0 {
+			out := fmt.Sprintf("*%d\r\n", len(indexes))
+			for _, k := range indexes {
+				out = fmt.Sprintf("%s$%d\r\n%s\r\n", out, len(k), k)
+			}
+			conn.Write([]byte(out))
+		} else {
+			conn.Write([]byte("*0\r\n"))
 		}
-		conn.Write([]byte(out))
-	} else {
-		conn.Write([]byte(fmt.Sprintf("*%d\r\n", len(keysStrings))))
 	}
 }
 
