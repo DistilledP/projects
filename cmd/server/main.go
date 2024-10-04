@@ -26,6 +26,8 @@ func main() {
 
 	defer ln.Close()
 
+	fmt.Printf("Server started on port %d\n", config.PublicPort)
+
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
