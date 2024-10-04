@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/DistilledP/lungfish/internal/types"
+	"github.com/DistilledP/projects/simple_redis/internal/types"
 )
 
 func TestRaw(t *testing.T) {

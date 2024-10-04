@@ -1,10 +1,9 @@
-# Summary
+# Projects
 
-Highly performant and scalable in memory data store.
+A collection of projects created to keep my coding skills fresh, enhance my knowledge and as a showcase for my abilities.
 
-# Features
-- Auto discovery
-- Auto sharding
-- Read/write to any node
-- Auto replication for resiliance
-- Wire/Protocol compatible with redis (https://redis-doc-test.readthedocs.io/en/latest/topics/protocol/)
+## Simple Redis
+
+An key value data store that mimics the behaviour of redis, but with a vastly reduced command set.
+
+

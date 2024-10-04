@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"strings"
 
-	"github.com/DistilledP/lungfish/internal/libs"
-	"github.com/DistilledP/lungfish/internal/types"
+	"github.com/DistilledP/projects/simple_redis/internal/libs"
+	"github.com/DistilledP/projects/simple_redis/internal/types"
 )
 
 const (

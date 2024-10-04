@@ -3,7 +3,7 @@ package storage
 import (
 	"maps"
 
-	"github.com/DistilledP/lungfish/internal/types"
+	"github.com/DistilledP/projects/simple_redis/internal/types"
 )
 
 type InMemory struct {

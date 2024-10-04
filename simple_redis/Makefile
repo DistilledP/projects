@@ -2,13 +2,7 @@ run-server:
 	@LUNGFISH_PUBLIC_PORT=6379 go run cmd/server/main.go
 
 build-server:
-	@go build -o build/server/lungfish cmd/server/main.go
-
-cli: 
-	@go run cmd/cli/main.go
-
-build-cli:
-	@go build -o build/cli/lungfish-cli cmd/cli/main.go
+	@go build -o build/server/simple_redis cmd/server/main.go
 
 clean:
 	@rm -fr build

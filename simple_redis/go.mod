@@ -1,4 +1,4 @@
-module github.com/DistilledP/lungfish
+module github.com/DistilledP/projects/simple_redis
 
 go 1.23
 

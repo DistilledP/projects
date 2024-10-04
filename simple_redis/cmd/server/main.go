@@ -6,11 +6,11 @@ import (
 	"log"
 	"net"
 
-	"github.com/DistilledP/lungfish/internal"
-	"github.com/DistilledP/lungfish/internal/libs"
-	"github.com/DistilledP/lungfish/internal/parser"
-	"github.com/DistilledP/lungfish/internal/storage"
-	"github.com/DistilledP/lungfish/internal/types"
+	"github.com/DistilledP/projects/simple_redis/internal"
+	"github.com/DistilledP/projects/simple_redis/internal/libs"
+	"github.com/DistilledP/projects/simple_redis/internal/parser"
+	"github.com/DistilledP/projects/simple_redis/internal/storage"
+	"github.com/DistilledP/projects/simple_redis/internal/types"
 )
 
 func main() {

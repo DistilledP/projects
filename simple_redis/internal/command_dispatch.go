@@ -5,8 +5,8 @@ import (
 	"net"
 	"strings"
 
-	hdlr "github.com/DistilledP/lungfish/internal/handler"
-	"github.com/DistilledP/lungfish/internal/types"
+	hdlr "github.com/DistilledP/projects/simple_redis/internal/handler"
+	"github.com/DistilledP/projects/simple_redis/internal/types"
 )
 
 var commandMap map[string]types.CommandHandler

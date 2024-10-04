@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/DistilledP/lungfish/internal/response"
-	"github.com/DistilledP/lungfish/internal/types"
+	"github.com/DistilledP/projects/simple_redis/internal/response"
+	"github.com/DistilledP/projects/simple_redis/internal/types"
 )
 
 func Get(store types.StorageBucket) types.CommandHandler {
